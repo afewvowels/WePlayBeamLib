@@ -1,0 +1,70 @@
+---------------------------------------------------------------------------------------------------
+Version: 0.6.1
+Date: 2026-11-12
+  Optimizations:
+    - Sparks are a lighter accent: one layer instead of two by default, and the proton preset spawns far fewer (about 7 alive at a time instead of about 30).
+---------------------------------------------------------------------------------------------------
+Version: 0.6.0
+Date: 2026-11-12
+  Features:
+    - Beam option grow_speed: the beam shoots out from the source when it starts instead of appearing all at once, which also spreads the cost of creating its render objects over several ticks. Sparks start once it reaches the target.
+    - path.truncate(points, dist).
+    - The proton preset grows at 1.2 tiles per tick.
+---------------------------------------------------------------------------------------------------
+Version: 0.5.0
+Date: 2026-11-12
+  Features:
+    - Beam option max_pieces and helix option max_samples: long beams use longer pieces instead of more of them, so drawing cost stays flat with length.
+    - beam.update can be called less often than every tick (e.g. every 2nd tick); sparks run their physics for the skipped ticks so they don't slow down.
+  Optimizations:
+    - Width and brightness are rounded to 1/16 before deciding whether to write them, so tiny changes (depth shading, fading sparks) cost no writes.
+    - Proton preset: 0.5-tile pieces capped at 24, and a looser filament coil (1.4 tiles per turn) drawn with far fewer points. About 70% fewer sprites on long beams.
+---------------------------------------------------------------------------------------------------
+Version: 0.4.1
+Date: 2026-11-12
+  Optimizations:
+    - Ribbons only write render object properties that changed: width and brightness are skipped when unchanged, visibility is tracked in script instead of read back, and validity is checked once per layer instead of once per piece. Roughly halves the per-tick work for a steady stream.
+    - Beam tips no longer rewrite their color every tick.
+---------------------------------------------------------------------------------------------------
+Version: 0.4.0
+Date: 2026-11-12
+  Features:
+    - Wander lanes: a sideways offset of the whole curve (zero at both ends) so several streams can fan out side by side without crossing. Lane, sway amount and tip radius glide smoothly to new values.
+    - beam.set_lane(b, lane, amount, tip) and wander.set_lane.
+---------------------------------------------------------------------------------------------------
+Version: 0.3.1
+Date: 2026-11-12
+  Changes:
+    - The stop sound now plays in the next loop slot after a release, so it overlaps the outgoing hum like loop chunks overlap each other instead of doubling it.
+---------------------------------------------------------------------------------------------------
+Version: 0.3.0
+Date: 2026-11-12
+  Features:
+    - Beam option "sound": a start sound, overlapping loop chunks (one name or a list played in turn) and a stop sound on release, played at the shooter.
+---------------------------------------------------------------------------------------------------
+Version: 0.2.1
+Date: 2026-11-12
+  Bugfixes:
+    - Fixed a crash when a beam end was an entity ("LuaEntity doesn't contain key x"): entities are userdata in Factorio 2.x.
+---------------------------------------------------------------------------------------------------
+Version: 0.2.0
+Date: 2026-11-12
+  Features:
+    - Impact sparks: glowing streaks that burst from the beam tip, arc up, fall with gravity and bounce before fading.
+    - Beam option "sparks", plus beam.set_sparks and beam.spark_burst.
+    - beam.release and beam.is_idle: let go of a target while the last sparks finish falling.
+    - The proton preset now sprays sparks at its tip.
+  Changes:
+    - Beam ends given as fixed positions now always count as alive.
+---------------------------------------------------------------------------------------------------
+Version: 0.1.0
+Date: 2026-11-12
+  Features:
+    - Path shapes: straight, Tesla-style jagged corners, bowed arcs, Catmull-Rom smoothing and even resampling.
+    - Wandering beam path: waypoints sway smoothly out of sync, pinned at the muzzle, with a tip that circles the target.
+    - Helix strands that coil around any path, spin over time and shade by depth.
+    - Ribbon drawing: pooled glow sprites (or lines) updated in place every tick, with crossfaded joins.
+    - Beam object tying it all together, safe to keep in storage, with retargeting that doesn't pop.
+    - Presets: proton, helix and lightning.
+    - Data stage helpers for Tesla-style visual beam pieces and invisible damage beams.
+    - /beamlib-demo command to preview each beam in-game.

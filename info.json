@@ -1,0 +1,11 @@
+{
+  "name": "WePlayBeamLib",
+  "version": "0.6.1",
+  "title": "WePlay: Beam Library",
+  "author": "WePlay",
+  "factorio_version": "2.1",
+  "dependencies": [
+    "base >= 2.0"
+  ],
+  "description": "Shared beam effects for WePlay mods: wandering energy streams, spiraling helix strands, jagged lightning, impact sparks and looping sound, drawn with glowing sprites that bend and move every tick. Does nothing on its own; try /beamlib-demo for a preview."
+}
