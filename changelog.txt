@@ -1,4 +1,83 @@
 ---------------------------------------------------------------------------------------------------
+Version: 0.16.0
+Date: 2026-11-14
+  Features:
+    - beamlib.bolt: lightning that keeps its shape relative to its ends, twitches between redraws instead of re-rolling, grows dead-end branches (with sub-branches) and changes mood (frantic, normal, calm) for irregular redraw timing and flicker speed. Storage-safe; moved here from the Tesla Defense Equipment.
+    - path.arcs option bows: fixed bow per span, so a shape can be kept and nudged.
+    - path.point_along(points, u): point and direction at a fraction of the way along a path.
+    - vec.angle(dx, dy): direction angle that works on any Lua version.
+    - arcs.spawn takes an optional max_length.
+    - datalib.make_path_beams option tail_last: a different tail for the last and single pieces, e.g. a fading tip for dead-end branches.
+    - datalib.make_path_beam_variants: tinted and speed variants of make_path_beams from the same sprite sheets.
+---------------------------------------------------------------------------------------------------
+Version: 0.15.0
+Date: 2026-11-13
+  Features:
+    - Ribbon layer options side ("front" or "back") and render_layer: a layer can draw only the segments on one side of the beam (by their helix z) on its own render layer. Give a coil a solid front layer and a glowing back layer and it crosses over the beam in crisp color while the hidden half glows behind it. Hidden pieces skip their position updates, so it costs about the same as one layer.
+  Bugfixes:
+    - Beams now pass a layer's opaque setting through to their ribbons.
+---------------------------------------------------------------------------------------------------
+Version: 0.14.1
+Date: 2026-11-13
+  Graphics:
+    - The solid sprite's ends are feathered so two overlapping pieces stack to exactly one piece's opacity: no more knobs at the joints of solid beams and coils.
+---------------------------------------------------------------------------------------------------
+Version: 0.14.0
+Date: 2026-11-13
+  Features:
+    - Solid sprite wp-beamlib-solid: normal blending with soft edges, drawn fully opaque, so beams can have a solid core and coils that keep their color instead of adding up to white. Darker brightness shades it instead of fading it. Solid pieces overlap slightly instead of crossfading.
+    - Coils can wrap around the beam: helix option split = {front = render layer, back = render layer} puts the parts of a coil behind the beam on one layer and the parts in front on another, with the beam drawn on a layer in between. The ribbon option is the same; a piece's render layer is only written when it switches sides.
+---------------------------------------------------------------------------------------------------
+Version: 0.13.0
+Date: 2026-11-13
+  Features:
+    - Surge sounds: surge config option sounds lists swells as {path, peak}, where peak is the ticks from the sound's start to its loudest point. Each bead picks a swell whose peak fits its travel time and starts it early so the peak lands exactly when the bead hits the target. sound_gap limits how often a swell plays and sound_volume sets its volume. Muted beams stay silent.
+---------------------------------------------------------------------------------------------------
+Version: 0.12.0
+Date: 2026-11-13
+  Features:
+    - Helix option stretch: with max_samples, long beams loosen the coil's pitch instead of getting jagged, so cost stays flat with length and every turn stays round.
+    - Helix option every: redraw a coil on every Nth beam update (for slow, wide coils).
+    - Helix option steps and ribbon option steps: coarser rounding of depth shading, for fewer render writes.
+    - helix.track and helix.draw: a fast path that measures the path once for all coils and draws straight into the ribbons, reusing scratch tables. ribbon.set_segments takes an optional count.
+  Optimizations:
+    - Beams draw their helices through the fast path: about 3 to 4 times less Lua work per helix.
+    - Ribbons only write a piece's position, angle and length when they actually changed.
+---------------------------------------------------------------------------------------------------
+Version: 0.11.0
+Date: 2026-11-13
+  Features:
+    - beam.reached(b): true once a growing beam has reached its target, so weapons can hold their damage until the beam visibly lands.
+---------------------------------------------------------------------------------------------------
+Version: 0.10.0
+Date: 2026-11-13
+  Features:
+    - Surges: big, irregular beads that travel down the beam at random gaps and sizes. Each one swells the main beam, bends it sideways in a travelling S-curve (the helix coils follow the bend and balloon out), and makes the tip flare with a spark burst when it lands. beam.set_surges(b, config, tick) turns them on, changes them or stops new launches; beam.launch_surge(b, tick, size) fires one by hand. Beads in flight vanish when the beam is released.
+    - beamlib.pulse: set_surges, launch, step_surges and surge_at for custom drawing.
+---------------------------------------------------------------------------------------------------
+Version: 0.9.0
+Date: 2026-11-12
+  Features:
+    - beam.set_muted(b, muted): silences a beam's sound while keeping its sound clock and pulse timing running, so unmuting picks up with the next loop chunk in rhythm. Handy for handing one hum between several beams.
+    - beam.sync_sound(b, from): takes over another beam's sound clock and pulse timing, so a hum can move from one beam to another without a start sound, a stop sound or a break in rhythm.
+---------------------------------------------------------------------------------------------------
+Version: 0.8.0
+Date: 2026-11-12
+  Features:
+    - Pulses: bright bands that travel down the beam from the source to the target. The main beam swells and brightens where a band passes, helix coils bulge out, and the tip flares as each band lands. Beam option pulses, beam.set_pulses(b, opts) to change them live, and beamlib.pulse for custom drawing.
+    - With a sound, the pulse clock starts with the first loop chunk, so pulses can keep time with the hum.
+    - Helix option bulge: how much a coil swells when a pulse passes.
+    - Tip options pulse_rate (how fast the tip throbs) and flash (how much it flares when a pulse lands).
+---------------------------------------------------------------------------------------------------
+Version: 0.7.0
+Date: 2026-11-12
+  Features:
+    - Stackable coils: beam.add_helix(b, opts, fade_ticks) adds extra helix coils on top of the beam's own helix, and beam.remove_helix(b, id, fade_ticks) takes them off. With a fade they unwind out of the core and wind back into it instead of popping. Beam option helices adds coils at the start; beam.helix_count(b) counts them.
+    - beam.set_core(b, width, intensity, ease_ticks): width and brightness multipliers for the main beam, its tip and its light, gliding to the new values.
+    - Helix options phase (turns, so stacked coils don't line up) and amp (presence 0 to 1, scales radius and brightness).
+  Compatibility:
+    - Beams saved by earlier versions keep working and can use the new functions.
+---------------------------------------------------------------------------------------------------
 Version: 0.6.1
 Date: 2026-11-12
   Optimizations:

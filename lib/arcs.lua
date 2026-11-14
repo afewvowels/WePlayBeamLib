@@ -20,7 +20,9 @@ end
 ---   surface, prefix: the name given to make_path_beams
 ---   points: from any path function
 ---   duration: ticks, e.g. the re-roll interval so the next set replaces this one
-function A.spawn(surface, prefix, points, duration)
+---   max_length: optional, passed to create_entity (pieces vanish if their ends
+---               get further apart than this)
+function A.spawn(surface, prefix, points, duration, max_length)
   local n = #points - 1
   for k = 1, n do
     surface.create_entity{
@@ -29,6 +31,7 @@ function A.spawn(surface, prefix, points, duration)
       source_position = points[k],
       target_position = points[k + 1],
       duration = duration,
+      max_length = max_length,
     }
   end
 end

@@ -77,6 +77,9 @@ end
 --- Tesla "arc" style: each span between corners bows out to a random side
 --- (quadratic Bezier). Corners stay sharp kinks.
 ---   bow = 0.35            bulge as a fraction of the span length
+---   bows = nil            optional fixed bow per span (fractions of the span
+---                         length, signed); replaces the random bow, so a shape
+---                         can be kept and nudged between redraws
 ---   piece_length = 1
 ---   rng = math.random
 function P.arcs(corners, opts)
@@ -92,7 +95,12 @@ function P.arcs(corners, opts)
     if n == 1 or len < 1e-6 then
       out[#out + 1] = q
     else
-      local bow = (rng() * 2 - 1) * bow_amount * len
+      local bow
+      if opts.bows then
+        bow = (opts.bows[i] or 0) * len
+      else
+        bow = (rng() * 2 - 1) * bow_amount * len
+      end
       local cx = (p.x + q.x) / 2 - (q.y - p.y) / len * bow
       local cy = (p.y + q.y) / 2 + (q.x - p.x) / len * bow
       for k = 1, n do
@@ -131,6 +139,23 @@ function P.smooth(points, piece_length)
     end
   end
   return out
+end
+
+--- Point and direction at fraction u (0 to 1) of the way along a polyline,
+--- measured by length. Returns point, direction in radians, total length.
+function P.point_along(points, u)
+  local total = P.length(points)
+  local want = total * V.clamp(u, 0, 1)
+  for i = 1, #points - 1 do
+    local p, q = points[i], points[i + 1]
+    local len = V.dist(p, q)
+    if want <= len or i == #points - 1 then
+      local t = len > 1e-9 and V.clamp(want / len, 0, 1) or 0
+      return V.lerp(p, q, t), V.angle(q.x - p.x, q.y - p.y), total
+    end
+    want = want - len
+  end
+  return {x = points[1].x, y = points[1].y}, 0, total
 end
 
 --- The first `dist` tiles of a polyline (the end point is interpolated).

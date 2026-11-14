@@ -39,6 +39,13 @@ function V.orientation(dx, dy)
   return o
 end
 
+local atan2 = math.atan2 or math.atan
+
+--- Angle of a direction vector in radians (screen coordinates: y points down).
+function V.angle(dx, dy)
+  return atan2(dy, dx)
+end
+
 function V.clamp(v, lo, hi)
   if v < lo then return lo end
   if v > hi then return hi end
