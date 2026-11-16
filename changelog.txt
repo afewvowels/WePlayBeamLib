@@ -1,4 +1,9 @@
 ---------------------------------------------------------------------------------------------------
+Version: 0.17.0
+Date: 2026-11-16
+  Features:
+    - Per-segment colors: ribbon segments (and path points) can carry .c, which replaces the layer color for that piece, for gradients and rainbows. Layers with own_color = true keep their own color, e.g. a white-hot core over a colored glow. Colors are compared at 6 bits per channel, so only real changes cost a write.
+---------------------------------------------------------------------------------------------------
 Version: 0.16.0
 Date: 2026-11-14
   Features:

@@ -39,7 +39,8 @@ end
 ---                                   (draw only segments on that side of the beam, by
 ---                                   their z; hidden pieces skip their updates),
 ---                                   render_layer (overrides the ribbon's), opaque,
----                                   fade
+---                                   fade, own_color (keep the layer's color even
+---                                   when segments carry their own .c)
 ---   kind = "sprite" | "line"
 ---   render_layer = "air-object"     (sprites only)
 ---   additive_lines = true           (lines only) zero-alpha colors, which the
@@ -76,14 +77,29 @@ function R.new(opts)
       opaque = l.opaque ~= nil and l.opaque or l.sprite == "wp-beamlib-solid",
       side = l.side,                   -- "front" / "back": only draw segments on that side (z)
       render_layer = l.render_layer,   -- overrides the ribbon's render layer for this layer
+      own_color = l.own_color,         -- ignore per-segment colors (.c)
       objects = {},
     }
   end
   return r
 end
 
-local function tint(r, layer, k)
-  local cr, cg, cb = rgb(layer.color)
+-- Per-segment colors: a segment's .c replaces the layer color (unless the
+-- layer has own_color). Returns nil when the layer color applies.
+local function seg_color(layer, seg)
+  if layer.own_color then return nil end
+  return seg.c
+end
+
+-- Colors are compared at 6 bits per channel, so tiny shifts cost no write.
+local function color_key(c)
+  if not c then return -1 end
+  local cr, cg, cb = rgb(c)
+  return math.floor(cr * 63 + 0.5) * 4096 + math.floor(cg * 63 + 0.5) * 64 + math.floor(cb * 63 + 0.5)
+end
+
+local function tint(r, layer, k, c)
+  local cr, cg, cb = rgb(c or layer.color)
   k = k * layer.intensity
   if layer.opaque then
     -- solid layers stay fully opaque; brightness only scales the color
@@ -99,7 +115,7 @@ local function create(r, layer, seg)
   if r.kind == "line" then
     return rendering.draw_line{
       surface = r.surface, from = seg.a, to = seg.b,
-      width = layer.width * 32, color = tint(r, layer, seg.i or 1),
+      width = layer.width * 32, color = tint(r, layer, seg.i or 1, seg_color(layer, seg)),
       players = r.players, forces = r.forces,
     }
   end
@@ -107,7 +123,7 @@ local function create(r, layer, seg)
   if r.split and not layer.render_layer then rl = (seg.z or 1) >= 0 and r.split.front or r.split.back end
   return rendering.draw_sprite{
     surface = r.surface, sprite = layer.sprite, target = seg.a,
-    render_layer = rl, tint = tint(r, layer, seg.i or 1),
+    render_layer = rl, tint = tint(r, layer, seg.i or 1, seg_color(layer, seg)),
     players = r.players, forces = r.forces,
   }
 end
@@ -172,13 +188,18 @@ local function place(r, layer, obj, seg, k)
       last_w[k] = w
     end
   end
-  if last_i[k] ~= i then
-    obj.color = tint(r, layer, i)
+  local c = seg_color(layer, seg)
+  local last_c = layer.last_c
+  local ck = c and color_key(c) or -1
+  if last_i[k] ~= i or last_c[k] ~= ck then
+    obj.color = tint(r, layer, i, c)
     last_i[k] = i
+    last_c[k] = ck
   end
 end
 
---- Draw a list of segments: { {a=, b=, w=width mult, i=intensity mult}, ... }
+--- Draw a list of segments: { {a=, b=, w=width mult, i=intensity mult, c=color}, ... }
+--- c (optional) replaces the layer color for that segment, e.g. for gradients.
 --- count (optional): use only the first count segments (for reused lists).
 function R.set_segments(r, segs, count)
   local n = count or #segs
@@ -188,11 +209,13 @@ function R.set_segments(r, segs, count)
     layer.last_w = layer.last_w or {}
     layer.last_i = layer.last_i or {}
     layer.last_p = layer.last_p or {}
+    layer.last_c = layer.last_c or {}
     -- One validity check per layer instead of one per object: our objects
     -- only go invalid all together (e.g. their surface was deleted).
     if objs[1] and not objs[1].valid then
       objs = {}
       layer.objects, layer.last_w, layer.last_i, layer.last_p, layer.vis = objs, {}, {}, {}, nil
+      layer.last_c = {}
       shown = 0
     end
     local last_w, last_i = layer.last_w, layer.last_i
@@ -250,7 +273,8 @@ function R.set_segments(r, segs, count)
   r.shown = n
 end
 
---- Draw a path. Points may carry .w and .i (width / intensity multipliers).
+--- Draw a path. Points may carry .w and .i (width / intensity multipliers)
+--- and .c (color; each segment takes its first point's color).
 function R.set_path(r, points)
   local segs = {}
   for k = 1, #points - 1 do
@@ -259,6 +283,7 @@ function R.set_path(r, points)
       a = a, b = b,
       w = ((a.w or 1) + (b.w or 1)) / 2,
       i = ((a.i or 1) + (b.i or 1)) / 2,
+      c = a.c,
     }
   end
   R.set_segments(r, segs)
@@ -272,6 +297,7 @@ function R.destroy(r)
   for _, layer in ipairs(r.layers) do
     for _, obj in pairs(layer.objects) do obj.destroy() end
     layer.objects, layer.last_w, layer.last_i, layer.last_p, layer.vis = {}, {}, {}, {}, nil
+    layer.last_c = {}
   end
   r.shown = 0
 end

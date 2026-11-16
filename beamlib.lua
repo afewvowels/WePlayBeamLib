@@ -7,7 +7,7 @@
 -- on_tick. The library has no runtime state of its own.
 
 return {
-  version = "0.16.0",
+  version = "0.17.0",
   vec = require("__WePlayBeamLib__/lib/vec"),
   path = require("__WePlayBeamLib__/lib/path"),
   wander = require("__WePlayBeamLib__/lib/wander"),

@@ -7,7 +7,7 @@ Shared beam effects for WePlay weapons. The library has no runtime state of its 
 `info.json` of the weapon mod:
 
 ```json
-"dependencies": ["base >= 2.0", "WePlayBeamLib >= 0.16.0"]
+"dependencies": ["base >= 2.0", "WePlayBeamLib >= 0.17.0"]
 ```
 
 `control.lua`:
@@ -153,8 +153,8 @@ A pool of render objects updated in place every tick.
 
 `ribbon.new{surface, layers, kind, render_layer, additive_lines, players, forces, steps, split}`. Layers can also take `side = "front"` or `"back"` (draw only segments on that side of the beam, by their `z`; hidden pieces skip their updates) and their own `render_layer`: a coil with a solid front layer above the beam and a glow back layer below it crosses over in crisp color while the far half glows behind. `split = {front = render layer, back = render layer}` sends segments with `z` ≥ 0 to the front layer and the rest to the back (helix segments carry `z`); give the same `split` as a helix option and the beam passes it on, so coils wrap around a solid core on a layer in between. Each layer is `{width = tiles, color = {r,g,b}, intensity = 1, sprite = "wp-beamlib-soft"}`.
 
-- `ribbon.set_path(r, points)`: points may carry `.w` and `.i` width and intensity multipliers.
-- `ribbon.set_segments(r, segs, count)`: `{a=, b=, w=, i=}` each; `count` (optional) uses only the first `count` segments, for reused lists.
+- `ribbon.set_path(r, points)`: points may carry `.w` and `.i` width and intensity multipliers, and `.c` color (each segment takes its first point's color).
+- `ribbon.set_segments(r, segs, count)`: `{a=, b=, w=, i=, c=}` each; `c` (optional) replaces the layer color for that piece, unless the layer has `own_color = true`; `count` (optional) uses only the first `count` segments, for reused lists.
 - `ribbon.hide(r)` and `ribbon.destroy(r)`.
 
 `kind = "sprite"` (default) uses the library's glow sprites with additive blending, so overlapping layers simply add light and draw order doesn't matter. Each sprite fades over its first and last 20%, and neighboring pieces overlap by exactly that much, so joins crossfade without bright beads. `kind = "line"` uses plain rendering lines: cheaper, untextured.
